@@ -3,6 +3,8 @@ echo -n "domen: "
 read DOMEN
 echo -n "IP: "
 read IP
+echo -n "you login: "
+read LOGIN
 echo -n "CF email: "
 read cfmail
 echo -n "CF token: "
@@ -18,17 +20,17 @@ yum update
 mkdir -p /etc/letsencrypt/
 mkdir /var/vmail
 mkdir /etc/exim/dkim
+mkdir /var/www/$LOGIN/tmp -p
+
 chown exim:exim -R /var/vmail/
 chown -R exim:exim /var/spool/exim/
-wget -P /etc/yum.repos.d/ ЛИНК
+wget -P /etc/yum.repos.d/ https://raw.githubusercontent.com/rlavrinenko/mail/master/nginx/nginx.repo
 yum install nginx
-wget -P /etc/conf.d/
-systemctl restart nginx
-systemctl enable nginx
-systemctl start dovecot
-systemctl enable dovecot
-systemctl enable exim
-systemctl start exim
+wget -P /etc/exim/ https://raw.githubusercontent.com/rlavrinenko/mail/master/exim/exim.conf
+wget -P /var/www/$LOGIN/ https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.2/postfixadmin-3.2.4.tar.gz
+cd /var/www/$LOGIN/ 
+tar zxvf postfixadmin-3.2.4.tar.gz
+mv postfixadmin-3.2.4 mailadmin
 openssl genrsa -out /etc/exim/dkim/$DOMEN.key 2048
 openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
@@ -55,4 +57,12 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"A\",\"name\":\"mail.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
+
+chown $LOGIN:$LOGIN /var/www/$LOGIN/tmp		
+systemctl restart nginx
+systemctl enable nginx
+systemctl start dovecot
+systemctl enable dovecot
+systemctl enable exim
+systemctl start exim
 		
