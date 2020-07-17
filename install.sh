@@ -14,23 +14,26 @@ mhost=mail.$DOMEN
 echo "$IP mail.$DOMEN" >> /etc/hosts 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
-yum install mariadb-server mariadb python2-certbot-dns-cloudflare certbot yum-utils dovecot dovecot-mysql exim exim-mysql jq
 yum-config-manager --enable remi-php74
-yum update
+yum update -y
+yum install mariadb-server mariadb python2-certbot-dns-cloudflare certbot yum-utils dovecot dovecot-mysql unzip exim exim-mysql jq php-fpm php-mysql php-imap php-mbstring php-common php-pdo php-xml -y
 mkdir -p /etc/letsencrypt/
 mkdir /var/vmail
 mkdir /etc/exim/dkim
 mkdir /var/www/$LOGIN/tmp -p
-
 chown exim:exim -R /var/vmail/
 chown -R exim:exim /var/spool/exim/
 wget -P /etc/yum.repos.d/ https://raw.githubusercontent.com/rlavrinenko/mail/master/nginx/nginx.repo
 yum install nginx
 wget -P /etc/exim/ https://raw.githubusercontent.com/rlavrinenko/mail/master/exim/exim.conf
 wget -P /var/www/$LOGIN/ https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.2/postfixadmin-3.2.4.tar.gz
+mkdir /var/www/$LOGIN/mail
+wget -P /var/www/$LOGIN/mail http://www.rainloop.net/repository/webmail/rainloop-latest.zip
 cd /var/www/$LOGIN/ 
 tar zxvf postfixadmin-3.2.4.tar.gz
 mv postfixadmin-3.2.4 mailadmin
+cd /var/www/$LOGIN/mail
+unzip rainloop-latest.zip
 openssl genrsa -out /etc/exim/dkim/$DOMEN.key 2048
 openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
