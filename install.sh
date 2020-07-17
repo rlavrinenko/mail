@@ -16,8 +16,9 @@ phpfpmcfg=/etc/php-fpm.d/$LOGIN.conf
 eximcfg=/etc/exim/exim.conf
 nginxmailcfg=/etc/nginx/conf.d/$mailhost.conf
 nginxmailadmincfg=/etc/nginx/conf.d/$mailhost.conf
-nginxpostfixadmincfg=/etc/nginx/conf.d/admin.$DOMEN.conf
+nginxpostfixadmincfg=/etc/nginx/conf.d/$admindomain.conf
 rainconf=/var/www/$LOGIN/mail/data/_data_/_default_/domains/$DOMEN.ini
+postfixadmincfg=/var/www/$LOGIN/postfixadmin/config.inc.php
 echo "$IP $mailhost" >> /etc/hosts 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
@@ -43,8 +44,16 @@ mv postfixadmin-3.2.4 mailadmin
 cd /var/www/$LOGIN/mail
 unzip rainloop-latest.zip
 wget -P  /var/www/$LOGIN/mail/data/_data_/_default_/domains/$DOMEN.ini https://raw.githubusercontent.com/rlavrinenko/mail/master/rain/domain.txt
-
+wget -P $nginxmailcfg https://raw.githubusercontent.com/rlavrinenko/mail/master/nginx/mail.conf
+wget -P $nginxpostfixadmincfg https://raw.githubusercontent.com/rlavrinenko/mail/master/nginx/madmin.conf
 sed -i s/mailhostname/$mailhost/g $rainconf
+sed -i s/mailhostname/$mailhost/g $nginxmailcfg
+sed -i s/maildomen/$DOMEN/g $nginxmailcfg
+sed -i s/mailwebuser/$LOGIN/g $nginxmailcfg
+sed -i s/admindomain/$admindomain/g $nginxpostfixadmincfg
+sed -i s/mailwebuser/$LOGIN/g $nginxpostfixadmincfg
+sed -i s/maildomen/$DOMEN/g $nginxpostfixadmincfg
+sed -i s/change-this-to-your.domain.tld/$DOMEN/g $postfixadmincfg
 openssl genrsa -out /etc/exim/dkim/$DOMEN.key 2048
 openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
@@ -110,7 +119,7 @@ do
 MAILPASS=$PASSWORD${SYMBOLS:$(expr $RANDOM % ${#SYMBOLS}):1}
 done
 sed -i s/DBpass/$MAILPASS/g $eximcfg
-
+sed -i s/postfixadmin/$MAILPASS/g $postfixadmincfg
 systemctl restart nginx
 systemctl enable nginx
 systemctl start dovecot
