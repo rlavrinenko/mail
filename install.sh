@@ -62,12 +62,20 @@ curl -X DELETE "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$
      -H "X-Auth-Email: $cfmail" \
      -H "X-Auth-Key: $cftok" \
      -H "Content-Type: application/json" | jq
-# Добавить
+# Добавить А mail
 curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"A\",\"name\":\"$mailhost\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
+#Добавить A admin
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
+        -H "X-Auth-Email: $cfmail" \
+        -H "X-Auth-Key: $cftok" \
+        -H "Content-Type: application/json" \
+        --data "{\"type\":\"A\",\"name\":\"admin.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":true}" | jq
+
+
 
 chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
 sed -i s/mailhostname/$mailhost/g $eximcfg
