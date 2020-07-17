@@ -17,6 +17,7 @@ eximcfg=/etc/exim/exim.conf
 nginxmailcfg=/etc/nginx/conf.d/$mailhost.conf
 nginxmailadmincfg=/etc/nginx/conf.d/$mailhost.conf
 nginxpostfixadmincfg=/etc/nginx/conf.d/admin.$DOMEN.conf
+rainconf=/var/www/$LOGIN/mail/data/_data_/_default_/domains/$DOMEN.ini
 echo "$IP $mailhost" >> /etc/hosts 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
@@ -41,6 +42,9 @@ tar zxvf postfixadmin-3.2.4.tar.gz
 mv postfixadmin-3.2.4 mailadmin
 cd /var/www/$LOGIN/mail
 unzip rainloop-latest.zip
+wget -P  /var/www/$LOGIN/mail/data/_data_/_default_/domains/$DOMEN.ini https://raw.githubusercontent.com/rlavrinenko/mail/master/rain/domain.txt
+
+sed -i s/mailhostname/$mailhost/g $rainconf
 openssl genrsa -out /etc/exim/dkim/$DOMEN.key 2048
 openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
