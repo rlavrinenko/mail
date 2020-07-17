@@ -45,7 +45,7 @@ openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
 echo "dns_cloudflare_api_key =$cftok" >>/etc/letsencrypt/cloudflareapi.cfg
 chmod 600 /etc/letsencrypt/cloudflareapi.cfg
-certbot certonly --cert-name $DOMEN --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflareapi.cfg --server https://acme-v02.api.letsencrypt.org/directory -d "*.$DOMEN" -d $DOMEN
+certbot certonly --cert-name $DOMEN --agree-tos -m hostmaster@$DOMEN --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflareapi.cfg --server https://acme-v02.api.letsencrypt.org/directory -d "*.$DOMEN" -d $DOMEN
 #Опередлить если есть   (Thanks Tras2 https://gist.github.com/Tras2 )
 zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMEN&status=active" \
   -H "X-Auth-Email: $cfmail" \
