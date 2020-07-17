@@ -84,7 +84,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
-        --data "{\"type\":\"MX\",\"name\":\"@\",\"content\":\"v=spf1 a mx ip4:$IP ~all\",\"ttl\":1,\"Priority\":1}" | jq
+        --data "{\"type\":\"MX\",\"name\":\"@\",\"content\":\"$mailhost\",\"ttl\":1,\"Priority\":1}" | jq
 
 chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
 sed -i s/mailhostname/$mailhost/g $eximcfg
