@@ -10,6 +10,7 @@ read cfmail
 echo -n "CF token: "
 read cftok
 mailhost=mail.$DOMEN
+admindomain=admin.$DOMEN
 hostnamectl set-hostname $mailhost
 phpfpmcfg=/etc/php-fpm.d/$LOGIN.conf
 eximcfg=/etc/exim/exim.conf
@@ -72,13 +73,19 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
-        --data "{\"type\":\"A\",\"name\":\"admin.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":true}" | jq
+        --data "{\"type\":\"A\",\"name\":\"$admindomain\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":true}" | jq
 #Добавить SPF
 curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"TXT\",\"name\":\"@\",\"content\":\"v=spf1 a mx ip4:$IP ~all\",\"ttl\":1}" | jq
+#Добавить dmarc
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
+        -H "X-Auth-Email: $cfmail" \
+        -H "X-Auth-Key: $cftok" \
+        -H "Content-Type: application/json" \
+        --data "{\"type\":\"TXT\",\"name\":\"_dmark\",\"content\":\"v=DMARC1; p=none\",\"ttl\":1}" | jq
 #Добавить MX
 curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
