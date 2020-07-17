@@ -43,7 +43,7 @@ openssl genrsa -out /etc/exim/dkim/$DOMEN.key 2048
 openssl rsa -in /etc/exim/dkim/$DOMEN.key -pubout > /etc/exim/dkim/$DOMEN.pub
 echo "dns_cloudflare_email =$cfmail" > /etc/letsencrypt/cloudflareapi.cfg
 echo "dns_cloudflare_api_key =$cftok" >>/etc/letsencrypt/cloudflareapi.cfg
-
+chmod 600 /etc/letsencrypt/cloudflareapi.cfg
 certbot certonly --cert-name $DOMEN --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflareapi.cfg --server https://acme-v02.api.letsencrypt.org/directory -d "*.$DOMEN" -d $DOMEN
 #Опередлить если есть   (Thanks Tras2 https://gist.github.com/Tras2 )
 zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$zone&status=active" \
@@ -65,7 +65,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
-        --data "{\"type\":\"A\",\"name\":\"mail.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
+        --data "{\"type\":\"A\",\"name\":\"$mailhost\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
 
 chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
 sed -i 's/mailhostname/$mailhost/g' $eximcfg
