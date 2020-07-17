@@ -75,11 +75,11 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"A\",\"name\":\"admin.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":true}" | jq
 #Добавить SPF
-#curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
-#        -H "X-Auth-Email: $cfmail" \
-#        -H "X-Auth-Key: $cftok" \
-#        -H "Content-Type: application/json" \
-#        --data "{\"type\":\"TXT\",\"name\":\"$DOMEN\",\"content\":\"v=spf1 a mx ip4:$IP ~all\",\"ttl\":1,\"proxied\":true}" | jq
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
+        -H "X-Auth-Email: $cfmail" \
+        -H "X-Auth-Key: $cftok" \
+        -H "Content-Type: application/json" \
+        --data "{\"type\":\"TXT\",\"name\":\"$DOMEN\",\"content\":\"v=spf1 a mx ip4:$IP ~all\",\"ttl\":1}" | jq
 
 
 chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
