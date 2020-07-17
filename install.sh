@@ -9,9 +9,14 @@ echo -n "CF email: "
 read cfmail
 echo -n "CF token: "
 read cftok
-hostnamectl set-hostname mail.$DOMEN
-mhost=mail.$DOMEN
-echo "$IP mail.$DOMEN" >> /etc/hosts 
+mailhost=mail.$DOMEN
+hostnamectl set-hostname $mailhost
+phpfpmcfg=/etc/php-fpm.d/$LOGIN.conf
+eximcfg=/etc/exim/exim.conf
+nginxmailcfg=/etc/nginx/conf.d/$mailhost.conf
+nginxmailadmincfg=/etc/nginx/conf.d/$mailhost.conf
+nginxpostfixadmincfg=/etc/nginx/conf.d/admin.$DOMEN.conf
+echo "$IP $mailhost" >> /etc/hosts 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install https://rpms.remirepo.net/enterprise/remi-release-7.rpm
 yum-config-manager --enable remi-php74
@@ -61,7 +66,20 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"A\",\"name\":\"mail.$DOMEN\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
 
-chown $LOGIN:$LOGIN /var/www/$LOGIN/tmp		
+chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
+sed -e s/mailhostname/$mailhost/ $eximcfg
+sed -e s/maildomen/$DOMEN/ $eximcfg
+SYMBOLS=""
+for symbol in {A..Z} {a..z} {0..9}; do SYMBOLS=$SYMBOLS$symbol; done
+PWD_LENGTH=16  
+PASSWORD=""    
+RANDOM=256     
+for i in `seq 1 $PWD_LENGTH`
+do
+MAILPASS=$PASSWORD${SYMBOLS:$(expr $RANDOM % ${#SYMBOLS}):1}
+done
+sed -e s/DBpass/$MAILPASS $eximcfg
+
 systemctl restart nginx
 systemctl enable nginx
 systemctl start dovecot
