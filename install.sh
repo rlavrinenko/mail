@@ -9,6 +9,7 @@ echo -n "CF email: "
 read cfmail
 echo -n "CF token: "
 read cftok
+useradd -d
 mailhost=mail.$DOMEN
 hostnamectl set-hostname $mailhost
 phpfpmcfg=/etc/php-fpm.d/$LOGIN.conf
@@ -26,6 +27,7 @@ yum-config-manager --enable remi-php74
 mkdir -p /etc/letsencrypt/
 mkdir /var/vmail
 mkdir /etc/exim/dkim
+useradd -d /var/www/$LOGIN $LOGIN
 mkdir /var/www/$LOGIN/tmp -p
 chown exim:exim -R /var/vmail/
 chown -R exim:exim /var/spool/exim/
@@ -46,7 +48,7 @@ echo "dns_cloudflare_api_key =$cftok" >>/etc/letsencrypt/cloudflareapi.cfg
 chmod 600 /etc/letsencrypt/cloudflareapi.cfg
 certbot certonly --cert-name $DOMEN --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflareapi.cfg --server https://acme-v02.api.letsencrypt.org/directory -d "*.$DOMEN" -d $DOMEN
 #Опередлить если есть   (Thanks Tras2 https://gist.github.com/Tras2 )
-zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$zone&status=active" \
+zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMEN&status=active" \
   -H "X-Auth-Email: $cfmail" \
   -H "X-Auth-Key: $cftok" \
   -H "Content-Type: application/json" | jq -r '{"result"}[] | .[0] | .id')
@@ -68,8 +70,8 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         --data "{\"type\":\"A\",\"name\":\"$mailhost\",\"content\":\"$IP\",\"ttl\":1,\"proxied\":false}" | jq
 
 chown $LOGIN:$LOGIN -R /var/www/$LOGIN/	
-sed -i 's/mailhostname/$mailhost/g' $eximcfg
-sed -i 's/maildomen/$DOMEN/g' $eximcfg
+sed -i s/mailhostname/$mailhost/g $eximcfg
+sed -i s/maildomen/$DOMEN/g $eximcfg
 SYMBOLS=""
 for symbol in {A..Z} {a..z} {0..9}; do SYMBOLS=$SYMBOLS$symbol; done
 PWD_LENGTH=16  
@@ -79,7 +81,7 @@ for i in `seq 1 $PWD_LENGTH`
 do
 MAILPASS=$PASSWORD${SYMBOLS:$(expr $RANDOM % ${#SYMBOLS}):1}
 done
-sed -i 's/DBpass/$MAILPASS/g' $eximcfg
+sed -i s/DBpass/$MAILPASS/g $eximcfg
 
 systemctl restart nginx
 systemctl enable nginx
