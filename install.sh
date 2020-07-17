@@ -85,7 +85,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
         -H "X-Auth-Key: $cftok" \
         -H "Content-Type: application/json" \
-        --data "{\"type\":\"TXT\",\"name\":\"_dmark\",\"content\":\"v=DMARC1; p=none\",\"ttl\":1}" | jq
+        --data "{\"type\":\"TXT\",\"name\":\"_dmarc\",\"content\":\"v=DMARC1; p=none\",\"ttl\":1}" | jq
 #Добавить MX
 curl -X POST "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/" \
         -H "X-Auth-Email: $cfmail" \
